@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#003366">
+    <title>STI College SJDM - Student Portal Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="login.css">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2712%27 fill=%27%23003366%27/%3E%3Ctext x=%2732%27 y=%2742%27 font-size=%2726%27 font-weight=%27900%27 text-anchor=%27middle%27 fill=%27%23FFC72C%27 font-family=%27Arial%27%3ESTI%3C/text%3E%3C/svg%3E">
+    <!-- Apply the saved theme before the page paints (prevents a light flash) -->
+    <script>
+        try {
+            if (localStorage.getItem('sti_theme') === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        } catch (e) { /* storage blocked: stay in light mode */ }
+    </script>
+</head>
+<body class="login-body">
+    <nav class="top-nav">
+        <div class="top-nav-inner">
+            <button id="theme-toggle" type="button" class="logo-badge theme-toggle"
+                    title="Switch to dark mode" aria-label="Switch to dark mode" aria-pressed="false"
+                    onclick="toggleTheme()">
+                STI
+                <span class="theme-toggle-icon"><i class="fa-solid fa-moon"></i></span>
+            </button>
+            <div class="top-nav-title">
+                <strong>Canteen Pre-Order &amp; Queue</strong>
+                <span>STI College San Jose Del Monte</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="login-main">
+        <section class="login-hero">
+            <span class="hero-tag">STI SJDM Mobile Ordering</span>
+            <h1>Skip the Long Canteen Lines!</h1>
+            <p>Sign in to pre-order your favorite campus meals, pick your recess time slot, and collect without waiting.</p>
+            <ul class="hero-points">
+                <li><i class="fa-solid fa-utensils" aria-hidden="true"></i> Browse the canteen menu</li>
+                <li><i class="fa-solid fa-clock" aria-hidden="true"></i> Choose your pickup shift slot</li>
+                <li><i class="fa-solid fa-ticket" aria-hidden="true"></i> Get your queue ticket instantly</li>
+            </ul>
+        </section>
+
+        <section class="login-card">
+            <header class="login-header">
+                <h2><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> Student Sign In</h2>
+                <span class="pill">Demo</span>
+            </header>
+
+            <form id="student-login-form" class="login-form" novalidate>
+                <div>
+                    <label class="field-label" for="login-student-id">Student Number *</label>
+                    <div class="input-icon-wrap">
+                        <i class="fa-solid fa-id-card" aria-hidden="true"></i>
+                        <input type="text" id="login-student-id" class="field field-with-icon" placeholder="e.g., 0200028912" autocomplete="username" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="field-label" for="login-student-name">Full Name *</label>
+                    <div class="input-icon-wrap">
+                        <i class="fa-solid fa-user-graduate" aria-hidden="true"></i>
+                        <input type="text" id="login-student-name" class="field field-with-icon" placeholder="e.g., Juan Dela Cruz" autocomplete="name" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="field-label" for="login-password">Demo Password *</label>
+                    <div class="input-icon-wrap">
+                        <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                        <input type="password" id="login-password" class="field field-with-icon" placeholder="Enter the demo password" autocomplete="current-password" required>
+                    </div>
+                </div>
+
+                <div class="login-options">
+                    <label class="remember-label">
+                        <input type="checkbox" id="remember-me" checked>
+                        <span>Keep me signed in</span>
+                    </label>
+                    <button type="button" id="demo-fill-button" class="demo-fill-link">Use Demo Account</button>
+                </div>
+
+                <p id="login-error" class="login-error hidden" role="alert" aria-live="polite"></p>
+
+                <button type="submit" class="confirm-btn login-submit">
+                    <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+                    <span>Sign In to Canteen</span>
+                </button>
+            </form>
+
+            <footer class="login-footer">
+                <p>Demo portal — no real student account is required.</p>
+            </footer>
+        </section>
+    </main>
+
+    <script>
+        // Dark mode — the STI logo is the toggle. Shares the 'sti_theme' setting with the main page.
+        const THEME_KEY = 'sti_theme';
+
+        function applyTheme(theme) {
+            const isDark = theme === 'dark';
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+
+            const btn = document.getElementById('theme-toggle');
+            if (!btn) return;
+
+            const label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+            btn.title = label;
+            btn.setAttribute('aria-label', label);
+            btn.setAttribute('aria-pressed', String(isDark));
+
+            const icon = btn.querySelector('i');
+            if (icon) icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        }
+
+        function toggleTheme() {
+            const root = document.documentElement;
+            const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+
+            root.classList.add('theme-transition');
+            const btn = document.getElementById('theme-toggle');
+            if (btn) {
+                btn.classList.remove('is-switching');
+                void btn.offsetWidth; // restart the animation
+                btn.classList.add('is-switching');
+            }
+            setTimeout(() => {
+                root.classList.remove('theme-transition');
+                if (btn) btn.classList.remove('is-switching');
+            }, 400);
+
+            applyTheme(next);
+            try { localStorage.setItem(THEME_KEY, next); } catch (e) { /* ignore */ }
+        }
+
+        (function initTheme() {
+            let saved = null;
+            try { saved = localStorage.getItem(THEME_KEY); } catch (e) { /* ignore */ }
+            applyTheme(saved === 'dark' ? 'dark' : 'light');
+        })();
+    </script>
+
+    <script>
+        (() => {
+            // Demo-only credentials. This is client-side validation, not secure authentication.
+            const DEMO_ACCOUNT = {
+                studentId: '0200028912',
+                studentName: 'Juan Dela Cruz',
+                password: 'sti12345'
+            };
+
+            const form = document.getElementById('student-login-form');
+            const studentIdInput = document.getElementById('login-student-id');
+            const studentNameInput = document.getElementById('login-student-name');
+            const passwordInput = document.getElementById('login-password');
+            const rememberInput = document.getElementById('remember-me');
+            const errorEl = document.getElementById('login-error');
+
+            function showError(message) {
+                errorEl.textContent = message;
+                errorEl.classList.remove('hidden');
+            }
+
+            function clearError() {
+                errorEl.textContent = '';
+                errorEl.classList.add('hidden');
+            }
+
+            document.getElementById('demo-fill-button').addEventListener('click', () => {
+                studentIdInput.value = DEMO_ACCOUNT.studentId;
+                studentNameInput.value = DEMO_ACCOUNT.studentName;
+                passwordInput.value = DEMO_ACCOUNT.password;
+                clearError();
+                passwordInput.focus();
+            });
+
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                clearError();
+
+                const studentId = studentIdInput.value.trim();
+                const studentName = studentNameInput.value.trim();
+                const password = passwordInput.value;
+
+                if (!studentId || !studentName || !password) {
+                    showError('Please complete all fields.');
+                    return;
+                }
+
+                const isValid = studentId === DEMO_ACCOUNT.studentId
+                    && studentName.toLowerCase() === DEMO_ACCOUNT.studentName.toLowerCase()
+                    && password === DEMO_ACCOUNT.password;
+
+                if (!isValid) {
+                    showError('Incorrect demo credentials. Use the “Use Demo Account” button or check the demo details.');
+                    return;
+                }
+
+                const session = {
+                    studentId: DEMO_ACCOUNT.studentId,
+                    studentName: DEMO_ACCOUNT.studentName,
+                    loginType: 'demo'
+                };
+
+                try {
+                    if (rememberInput.checked) {
+                        localStorage.setItem('sti_student_session', JSON.stringify(session));
+                        sessionStorage.removeItem('sti_student_session');
+                    } else {
+                        sessionStorage.setItem('sti_student_session', JSON.stringify(session));
+                        localStorage.removeItem('sti_student_session');
+                    }
+                } catch (storageError) {
+                    showError('Your browser blocked session storage. Please enable site storage and try again.');
+                    return;
+                }
+
+                window.location.assign('Mainpage.html');
+            });
+        })();
+    </script>
+</body>
+</html>

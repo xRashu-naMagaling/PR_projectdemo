@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>STI College SJDM - Canteen Pre-Ordering &amp; Mobile Queue System</title>
+
+    <!-- Font Awesome icons and Google Font (Inter) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Not signed in? Go back to the login page before anything shows -->
+    <script>
+        try {
+            if (!(localStorage.getItem('sti_student_session') || sessionStorage.getItem('sti_student_session'))) {
+                window.location.replace('index.html');
+            }
+        } catch (e) { window.location.replace('index.html'); }
+    </script>
+
+    <!-- Apply the saved theme before the page paints (prevents a light flash) -->
+    <script>
+        try {
+            if (localStorage.getItem('sti_theme') === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        } catch (e) { /* storage blocked: stay in light mode */ }
+    </script>
+
+    <link rel="stylesheet" href="Mainpage.css">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2712%27 fill=%27%23003366%27/%3E%3Ctext x=%2732%27 y=%2742%27 font-size=%2726%27 font-weight=%27900%27 text-anchor=%27middle%27 fill=%27%23FFC72C%27 font-family=%27Arial%27%3ESTI%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+
+    <!-- ==========================================
+         HEADER & NAVIGATION
+         ========================================== -->
+    <header class="site-header">
+        <div class="header-inner">
+
+            <div class="brand" onclick="switchView('student')">
+                <button id="theme-toggle" type="button" class="logo-badge theme-toggle"
+                        title="Switch to dark mode" aria-label="Switch to dark mode" aria-pressed="false"
+                        onclick="event.stopPropagation(); toggleTheme();">
+                    STI
+                    <span class="theme-toggle-icon"><i class="fa-solid fa-moon"></i></span>
+                </button>
+                <div>
+                    <h1 class="brand-title">Canteen Pre-Order &amp; Queue</h1>
+                    <p class="brand-sub">STI College San Jose Del Monte</p>
+                </div>
+            </div>
+
+            <nav class="nav-tabs">
+                <button id="nav-student" class="nav-tab active" onclick="switchView('student')">
+                    <i class="fa-solid fa-utensils"></i>
+                    <span>Food Menu</span>
+                </button>
+                <button id="nav-mobile" class="nav-tab" onclick="switchView('mobile')">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>Queue Ticket</span>
+                    <span id="nav-queue-dot" class="queue-dot hidden"></span>
+                </button>
+                <button id="nav-kitchen" class="nav-tab" onclick="switchView('kitchen')">
+                    <i class="fa-solid fa-kitchen-set"></i>
+                    <span>Canteen Admin / KDS</span>
+                </button>
+                <button id="nav-logout" class="nav-tab" onclick="logoutStudent()">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Log out</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Pop-up messages appear here -->
+    <div id="toast-container"></div>
+
+    <main class="page">
+
+        <!-- ==========================================
+             VIEW 1: STUDENT PORTAL
+             ========================================== -->
+        <section id="view-student" class="view">
+
+            <div class="banner">
+                <div>
+                    <span class="pill">STI SJDM Mobile Ordering</span>
+                    <h2 class="banner-title">Skip the Long Canteen Lines!</h2>
+                    <p class="banner-text">Pre-order your favorite campus meals, pick your recess time slot, and collect without waiting.</p>
+                </div>
+                <div class="student-box">
+                    <p><i class="fa-solid fa-user-graduate"></i> <strong>Student:</strong> <span id="student-name"></span></p>
+                    <p><i class="fa-solid fa-id-card"></i> <strong>ID:</strong> <span id="student-id"></span></p>
+                    <p><i class="fa-solid fa-clock"></i> <strong>Peak Shift:</strong> 12:00 PM - 12:30 PM</p>
+                </div>
+            </div>
+
+            <!-- Shown after the student places an order -->
+            <div id="active-order-ribbon" class="ribbon hidden">
+                <div class="ribbon-left">
+                    <div class="ribbon-icon"><i class="fa-solid fa-bowl-food"></i></div>
+                    <div>
+                        <div class="ribbon-line">
+                            <span class="ribbon-label">Active Order Token:</span>
+                            <span id="ribbon-token-no" class="token-chip"></span>
+                            <span id="ribbon-status-badge" class="badge"></span>
+                        </div>
+                        <p class="ribbon-meta">Est. Pickup Time: <strong id="ribbon-time"></strong> &bull; <span id="ribbon-queue-pos" class="queue-text"></span></p>
+                    </div>
+                </div>
+                <button class="ribbon-btn" onclick="switchView('mobile')">
+                    <i class="fa-solid fa-qrcode"></i>
+                    <span>Open Queue Ticket Pass</span>
+                </button>
+            </div>
+
+            <div class="shop-layout">
+
+                <!-- Menu -->
+                <div class="menu-column">
+                    <div class="category-bar">
+                        <button id="cat-all" class="category-btn active" onclick="filterCategory('all')">All Items</button>
+                        <button id="cat-Meals" class="category-btn" onclick="filterCategory('Meals')">Rice Meals</button>
+                        <button id="cat-Snacks" class="category-btn" onclick="filterCategory('Snacks')">Snacks</button>
+                        <button id="cat-Drinks" class="category-btn" onclick="filterCategory('Drinks')">Drinks</button>
+                        <button id="cat-Desserts" class="category-btn" onclick="filterCategory('Desserts')">Desserts</button>
+                    </div>
+                    <div id="student-menu-grid" class="menu-grid"></div>
+                </div>
+
+                <!-- Food tray -->
+                <aside id="cart-panel" class="cart-panel">
+                    <div class="cart-head">
+                        <h3><i class="fa-solid fa-basket-shopping"></i> Canteen Food Tray</h3>
+                        <span id="cart-count-badge" class="count-badge">0 items</span>
+                    </div>
+
+                    <div id="cart-items-container" class="cart-items"></div>
+
+                    <div class="cart-options">
+                        <label class="field-label" for="cart-time-slot">Target Pickup Shift Slot:</label>
+                        <select id="cart-time-slot" class="field">
+                            <option value="10:00 AM - 10:15 AM">10:00 AM - 10:15 AM (Morning Recess)</option>
+                            <option value="12:00 PM - 12:15 PM" selected>12:00 PM - 12:15 PM (Lunch Shift A)</option>
+                            <option value="12:15 PM - 12:30 PM">12:15 PM - 12:30 PM (Lunch Shift B)</option>
+                            <option value="03:00 PM - 03:15 PM">03:00 PM - 03:15 PM (Afternoon Break)</option>
+                        </select>
+
+                        <label class="field-label" for="cart-notes">Special Preparation Request:</label>
+                        <input type="text" id="cart-notes" class="field" placeholder="e.g. Extra sauce, no onions, separate gravy...">
+
+                        <div class="cart-total-row">
+                            <span>Total Due:</span>
+                            <span id="cart-total-price" class="cart-total">₱0.00</span>
+                        </div>
+                        <button id="btn-canteen-checkout" class="checkout-btn" onclick="openCheckoutModal()" disabled>
+                            <span>Proceed to Payment</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </aside>
+            </div>
+
+            <!-- Order history -->
+            <div class="card">
+                <div class="card-head">
+                    <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Pre-Orders</h3>
+                    <span class="muted-small">STI SJDM Canteen Orders</span>
+                </div>
+                <div id="student-orders-history" class="history-list"></div>
+            </div>
+
+            <!-- Mobile only: floating tray summary so students can jump to checkout -->
+            <button id="mobile-cart-bar" type="button" class="mobile-cart-bar hidden" onclick="scrollToCart()">
+                <span class="mobile-cart-info">
+                    <i class="fa-solid fa-basket-shopping"></i>
+                    <span id="mobile-cart-count">0 items</span>
+                </span>
+                <span class="mobile-cart-go">
+                    <strong id="mobile-cart-total">₱0.00</strong>
+                    <span>View Tray <i class="fa-solid fa-arrow-up"></i></span>
+                </span>
+            </button>
+
+        </section>
+
+        <!-- ==========================================
+             VIEW 2: MOBILE QUEUE TICKET
+             ========================================== -->
+        <section id="view-mobile" class="view view-mobile hidden">
+
+            <div class="banner">
+                <div>
+                    <span class="pill">STI SJDM Mobile Queue Pass</span>
+                    <h2 class="banner-title">Canteen Pickup Ticket</h2>
+                    <p class="banner-text">Show this pass at Counter 1 when your order is ready.</p>
+                </div>
+            </div>
+
+            <!-- Filled in by renderMobileTicket() -->
+            <div id="mobile-ticket-content"></div>
+
+        </section>
+
+        <!-- ==========================================
+             VIEW 3: CANTEEN ADMIN / KITCHEN DISPLAY
+             ========================================== -->
+        <section id="view-kitchen" class="view hidden">
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div>
+                        <p class="stat-label">Pending Verification</p>
+                        <h3 id="stat-pending-count" class="stat-value amber">0</h3>
+                    </div>
+                    <div class="stat-icon amber-bg"><i class="fa-solid fa-receipt"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <p class="stat-label">Currently Preparing</p>
+                        <h3 id="stat-prep-count" class="stat-value blue-text">0</h3>
+                    </div>
+                    <div class="stat-icon blue-bg"><i class="fa-solid fa-fire-burner"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <p class="stat-label">Ready For Pickup</p>
+                        <h3 id="stat-ready-count" class="stat-value green">0</h3>
+                    </div>
+                    <div class="stat-icon green-bg"><i class="fa-solid fa-bell"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <p class="stat-label">Today's Revenue</p>
+                        <h3 id="stat-total-revenue" class="stat-value navy">₱0.00</h3>
+                    </div>
+                    <div class="stat-icon yellow-bg"><i class="fa-solid fa-peso-sign"></i></div>
+                </div>
+            </div>
+
+            <div class="admin-bar">
+                <div class="admin-tabs">
+                    <button id="admin-tab-kds" class="admin-tab active" onclick="switchAdminSubTab('kds')">
+                        <i class="fa-solid fa-border-all"></i>
+                        <span>Kitchen Display Board</span>
+                    </button>
+                    <button id="admin-tab-stock" class="admin-tab" onclick="switchAdminSubTab('stock')">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                        <span>Menu Inventory &amp; Stock</span>
+                    </button>
+                </div>
+                <div class="muted-small"><i class="fa-solid fa-circle live-dot"></i> Live Orders Sync Active</div>
+            </div>
+
+            <div id="kds-subtab-container">
+                <div id="kds-orders-container" class="kds-grid"></div>
+            </div>
+
+            <div id="stock-subtab-container" class="hidden">
+                <div class="card">
+                    <div class="card-head stock-head">
+                        <div>
+                            <h3>Canteen Menu Availability Toggle</h3>
+                            <p class="muted-small">Toggle items in or out of stock to automatically update student pre-ordering menus.</p>
+                        </div>
+                    </div>
+                    <div id="admin-inventory-list" class="inventory-grid"></div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- ==========================================
+         CHECKOUT & PAYMENT MODAL
+         ========================================== -->
+    <div id="checkout-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <div class="modal-head">
+                <h3>Canteen Checkout &amp; Payment</h3>
+                <button class="close-btn" onclick="closeCheckoutModal()" aria-label="Close checkout"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="summary-box">
+                <p><span>Total Items:</span> <strong id="modal-item-count">0</strong></p>
+                <p><span>Selected Shift:</span> <strong id="modal-shift-text"></strong></p>
+                <p class="summary-total"><span>Total Amount Due:</span> <strong id="modal-amount-text">₱0.00</strong></p>
+            </div>
+
+            <div>
+                <p class="field-label">Select Payment Method:</p>
+                <div class="pay-grid">
+                    <button type="button" id="paymethod-GCash" class="pay-btn selected" onclick="selectPaymentMethod('GCash', 'paymethod-GCash')">
+                        <i class="fa-solid fa-mobile-screen icon-blue"></i>
+                        <span>GCash</span>
+                    </button>
+                    <button type="button" id="paymethod-Maya" class="pay-btn" onclick="selectPaymentMethod('Maya', 'paymethod-Maya')">
+                        <i class="fa-solid fa-wallet icon-green"></i>
+                        <span>Maya</span>
+                    </button>
+                    <button type="button" id="paymethod-BankTransfer" class="pay-btn" onclick="selectPaymentMethod('Bank Transfer', 'paymethod-BankTransfer')">
+                        <i class="fa-solid fa-building-columns icon-orange"></i>
+                        <span>Bank Transfer</span>
+                    </button>
+                    <button type="button" id="paymethod-CashOnPickup" class="pay-btn" onclick="selectPaymentMethod('Cash on Pickup', 'paymethod-CashOnPickup')">
+                        <i class="fa-solid fa-hand-holding-dollar icon-amber"></i>
+                        <span>Cash Pickup</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Online payment details + proof -->
+            <div id="online-payment-details-box">
+                <div class="pay-info">
+                    <div class="pay-info-top">
+                        <span id="selected-payment-title" class="pay-info-title">GCash Express Transfer</span>
+                        <button type="button" class="open-app-btn" onclick="simulatePaymentAppLaunch()">
+                            Open App <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </button>
+                    </div>
+                    <p>Account Name: <strong>STI SJDM Canteen Vendor</strong></p>
+                    <p>Account #: <strong id="selected-payment-acc"></strong></p>
+                </div>
+
+                <label class="field-label" for="canteen-ref-no">Transaction Reference Number *</label>
+                <input type="text" id="canteen-ref-no" class="field" placeholder="e.g., 1009823741">
+
+                <label class="field-label" for="canteen-proof-file">Proof of Payment Screenshot *</label>
+                <input type="file" id="canteen-proof-file" class="file-field" accept="image/*" onchange="showProofName()">
+                <p id="proof-file-note" class="proof-note hidden"></p>
+            </div>
+
+            <!-- Cash note -->
+            <div id="cash-pickup-info-box" class="cash-note hidden">
+                <p class="cash-note-title"><i class="fa-solid fa-circle-info"></i> Cash on Counter Pickup</p>
+                <p>Please prepare exact change when claiming your order at Counter 1 to ensure fast queue processing.</p>
+            </div>
+
+            <button type="button" class="confirm-btn" onclick="submitCanteenOrder()">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span>Confirm &amp; Place Pre-Order</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         PAYMENT PROOF VIEWER MODAL
+         ========================================== -->
+    <div id="proof-modal" class="modal-overlay hidden">
+        <div class="modal-box proof-box">
+            <div class="modal-head">
+                <h3>Payment Screenshot Proof</h3>
+                <button class="close-btn" onclick="closeProofModal()" aria-label="Close proof viewer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <img id="proof-modal-img" class="proof-img" alt="Payment proof screenshot">
+        </div>
+    </div>
+
+    <!-- jQuery library (loaded from a CDN), then our script -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="Mainpage.js"></script>
+</body>
+</html>
