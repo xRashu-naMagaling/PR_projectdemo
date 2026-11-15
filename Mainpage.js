@@ -201,9 +201,10 @@ function switchAdminSubTab(tab) {
 // ==========================================
 
 function filterCategory(cat) {
-    document.querySelectorAll('.cat-btn').forEach(b => b.className = "cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 whitespace-nowrap");
+    // Toggle only the 'active' class so each button keeps its border and base styling
+    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
     const activeBtn = document.getElementById(`cat-${cat}`);
-    if (activeBtn) activeBtn.className = "cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-sti-blue text-white shadow-sm";
+    if (activeBtn) activeBtn.classList.add('active');
     renderStudentMenu(cat);
 }
 
